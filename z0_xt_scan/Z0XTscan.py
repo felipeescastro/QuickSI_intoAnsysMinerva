@@ -11,13 +11,15 @@ from pyaedt import Edb
 from functions import *
 
 
-default_Version = '2022.2'
-version_list = {
-    "2022.2": "ANSYSEM_ROOT222",
-    "2022.1": "ANSYSEM_ROOT221",
-    "2021.1": "ANSYSEM_ROOT211",
-    "2021.2": "ANSYSEM_ROOT212"
-}
+environs = os.environ
+environs = list(environs.keys())
+env_EM_start = "ANSYSEM_ROOT"
+ansys_em_roots =[]
+for env in environs:
+    if env_EM_start == env[:(len(env_EM_start))]:
+        ansys_em_roots.append(env)
+last_version_root = ansys_em_roots[len(ansys_em_roots)-1]
+
 default_values = {
     "NominalZ0": "50",
     "WarningThreshold": "10",
@@ -38,7 +40,7 @@ args = sys.argv
 
 # Check that there are at least 3 or 4 or 5 arguments to perform the simulations
 # if not, quit/exit() the terminal and try again
-if len(args) in [3, 4, 5]:
+if len(args) in [3, 4]:
     json_path = os.path.abspath(args[1])
     board_path = os.path.abspath(args[2])
     default_project_path, project_siw = os.path.split(board_path)
@@ -46,13 +48,9 @@ if len(args) in [3, 4, 5]:
     project_path = default_project_path
 
     project_name = project_siw.replace(".siw", '')
-    Version = default_Version
-    if len(args) == 5:
-        project_path = os.path.abspath(args[4])
-        Version = args[3]
-    # In case of 4 arguments, the 4th can be considered as the project path or the version
-    elif len(args) == 4:
-        Version = args[3]
+    if len(args) == 4:
+        project_path = os.path.abspath(args[3])
+
 else:
     print("The number of arguments does not match")
     sys.exit()
@@ -80,12 +78,16 @@ temp_folder = os.path.join(temp_folder, 'AnsysPyXml-Z0XTscan', project_name)
 if not os.path.exists(temp_folder):
     os.makedirs(temp_folder)
 
-## Install path
-if Version in version_list.keys():
+if last_version_root:
     # Make sure the Ansys Environment Variables are well-defined
     # in your system properties with the same Names
-    AnsysEnviron = version_list[Version]
-    installPath = os.environ[AnsysEnviron]
+    v = last_version_root[-3:]
+    version_in_dot_format = "20" + v[:2] + "." + v[2]
+    installPath = os.environ[last_version_root]
+else :
+    print("ANSYS Applications environements are not well defined")
+    sys.exit()
+
 siwave_path = os.path.join(installPath, 'siwave.exe')
 siwave_ng_path = os.path.join(installPath, 'siwave_ng.exe')
 
@@ -100,7 +102,7 @@ create_edb.close()
 command = [siwave_path, board_path,'-runscriptandexit', os.path.join(temp_folder, "script_create_edb.py")]
 
 subprocess.run(command)
-edb = Edb(edbpath=edbpath, edbversion=Version)
+edb = Edb(edbpath=edbpath, edbversion=version_in_dot_format)
 
 # in case the file path already exist use the same file to run the simulations
 if not os.path.exists(project_path):
@@ -111,7 +113,7 @@ log = create_logger(report_file)
 display('Project Name                  : ' + project_name, log)
 display('*.json File Location          : ' + json_path, log)
 display('Loaded *.siw File Location    : ' + board_path, log)
-display('Siwave Version                : ' + Version, log)
+display('Siwave Version                : ' + version_in_dot_format, log)
 display('Project File Location         : ' + project_path + '\n', log)
 
 # copy *.siw in the designed project path location

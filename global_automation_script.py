@@ -8,6 +8,8 @@ import sys
 import os
 import re
 
+app_data_path = os.environ["APPDATA"]
+env_pyaedt = os.path.join(app_data_path, "pyaedt_env_ide")
 
 def set_freq_sweep(edb,imported_json_s_param):
     """Add a SIwave SYZ analysis.
@@ -101,34 +103,35 @@ def save_as_siw(edb):
     return os.path.splitext(process._project_path)[0] + ".siw"
 
 
-default_Version = '2022.2'
-version_list = {
-    "2022.2": "ANSYSEM_ROOT222",
-    "2022.1": "ANSYSEM_ROOT221",
-    "2021.1": "ANSYSEM_ROOT211",
-    "2021.2": "ANSYSEM_ROOT212"
-}
 args = sys.argv
+environs = os.environ
+environs = list(environs.keys())
+env_EM_start = "ANSYSEM_ROOT"
+ansys_em_roots =[]
 
-# Check that there are at least 3 or 4 or 5 arguments to perform the simulations
+# Find the last ANSYS EM version installed in local PC
+for env in environs:
+    if env_EM_start == env[:(len(env_EM_start))]:
+        ansys_em_roots.append(env)
+last_version_root = ansys_em_roots[len(ansys_em_roots)-1]
+v = last_version_root[-3:]
+version_in_dot_format = "20" + v[:2] + "." + v[2]
+
+# Check that there are at least 3 or 4  arguments to perform the simulations
 # if not, quit/exit() the terminal and try again
-if len(args) in [3, 4, 5]:
+if len(args) in [3, 4]:
     json_path = os.path.abspath(args[1])
     board_path = os.path.abspath(args[2])
     default_project_path, project_siw = os.path.split(board_path)
     default_project_path = os.path.join(default_project_path,"Results")
     project_path = default_project_path
     project_name = project_siw.replace(".aedb", '')
-    Version = default_Version
-    if len(args) == 5:
-        project_path = os.path.abspath(args[4])
-        Version = args[3]
-    # In case of 4 arguments, the 4th can be considered as the project path or the version
-    elif len(args) == 4:
-        Version = args[3]
-else:
-    print("The number of arguments does not match")
-    sys.exit()
+    if len(args) == 4:
+        project_path = os.path.abspath(args[3])
+
+# else:
+#     print("The number of arguments does not match")
+#     sys.exit()
 
 
 if not os.path.exists(project_path):
@@ -143,7 +146,7 @@ if not os.path.exists(os.path.join(project_path, project_name + ".aedb")):
     shutil.copyfile(os.path.join(board_path, "edb.def"), os.path.join(project_path, project_name + ".aedb", "edb.def"))
 new_edb_path = os.path.join(project_path, project_name + ".aedb")
 
-edb0 = Edb(edbpath=new_edb_path, edbversion=Version)
+edb0 = Edb(edbpath=new_edb_path, edbversion=version_in_dot_format)
 siw_path = save_as_siw(edb0)
 core_nets= edb0.core_nets
 core_padstack = edb0.core_padstack
@@ -152,11 +155,11 @@ edb0.save_edb()
 si_wave_input = {}
 if "S-parameters" in jsonFile.keys() and jsonFile["S-parameters"]:
     s_parameters_input = jsonFile["S-parameters"]
-    command = ["python"]
+    command = [os.path.join(env_pyaedt, "Scripts", "python.exe")]
     command.append(".\\nets_manager\\net_manager.py")
     command.append(json_path)
     command.append(new_edb_path)
-    command.append(Version)
+    command.append(version_in_dot_format)
     p = subprocess.Popen(command)
     p.wait()
     j_file = open(".\\nets_sorted.json", "r")
@@ -183,11 +186,10 @@ edb0.close_edb()
 if "Sim Scan" in jsonFile.keys() and jsonFile["Sim Scan"]:
     zo_xt_script_path = ".\\z0_xt_scan\\Z0XTscan.py"
     si_wave_input = jsonFile["Sim Scan"]
-    command = ["python"]
+    command = [os.path.join(env_pyaedt, "Scripts", "python.exe")]
     command.append(zo_xt_script_path)
     command.append(json_path)
     command.append(siw_path)
-    command.append(Version)
     command.append(os.path.join(project_path, "Z0_XT_scan"))
     print(command)
     p = subprocess.Popen(command)
@@ -213,11 +215,13 @@ if "AEDT" in jsonFile.keys() and jsonFile["AEDT"]:
     aedt_file = open(aedt_input_json_path,"w")
     aedt_input_json= json.dump(aedt_input, aedt_file, indent=2)
     aedt_file.close()
-    command = ["python"]
-    command.append(".\\aedt_analysis\\aedt_analysis.py")
+    command = [os.path.join(env_pyaedt, "Scripts", "python.exe")]
+    command.append(".\\aedt_analysis\\edt_analysis.py")
     command.append(aedt_input_json_path)
     command.append(os.path.join(project_path,project_name+".s"+str(count_ports)+"p"))
     command.append(project_path)
-    command.append(Version)
     p = subprocess.Popen(command)
     p.wait()
+
+# os.remove("nets_sorted.json")
+# os.remove("aedt_input_json.json")

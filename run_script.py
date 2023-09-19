@@ -59,15 +59,14 @@ def main():
         subprocess.call([os.path.join(env_pyaedt, "Scripts", "pip"), "install", "ipython", "-U"])
 
     else:
-        subprocess.call(os.path.join(env_pyaedt, "Scripts", "activate.bat"))
         if not os.path.exists(os.path.join(env_pyaedt,"Lib","site-packages","pyaedt")):
             subprocess.call([os.path.join(env_pyaedt, "Scripts", "pip"), "-m", "pip", "install", "--upgrade", "pip"])
             subprocess.call([os.path.join(env_pyaedt, "Scripts", "pip"), "install", "pyaedt"])
             subprocess.call([os.path.join(env_pyaedt, "Scripts", "pip"), "install", "ipython", "-U"])
-    subprocess.call(os.path.join(env_pyaedt, "Scripts", "activate.bat"))
+
     try:
         log('launching Quick SI analysis with ' + curInputFile)
-        subprocess.call([os.path.join(python_exe_loc,"python.exe"),curScript, curInputFile, curInputFile_1])
+        subprocess.call([os.path.join(env_pyaedt, "Scripts", "python.exe"),curScript, curInputFile, curInputFile_1])
 
     except:
         log('failed launching app')

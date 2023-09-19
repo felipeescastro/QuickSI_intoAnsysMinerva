@@ -6,20 +6,17 @@ import re
 
 
 ext_keyword= "_EXTD"
+
 args = sys.argv
-print(args)
-
-# json_path = "example.json"
-# edb_path = "D:\Temp\Galileo.aedb"
-
 json_path = args[1]
 edb_path = args[2]
 version = args[3]
+
 ## Open json file
 j_file = open(json_path, "r")
 jsonFile = json.load(j_file)
 j_file.close()
-edb = Edb(edbpath=edb_path, edbversion="2022.2") ################################
+edb = Edb(edbpath=edb_path, edbversion=version)
 s_parameters_input = jsonFile["S-parameters"]
 
 components_list= []
