@@ -1,0 +1,87 @@
+{
+ "Sim Scan": {
+  "Z0scan": {
+   "DifferentialNets": [
+    {
+     "Name":  "DP_PCIE0_RX0"
+    }
+   ],
+    "Parameters": {
+      "MinTlineSegmentLength": "0.3mm",
+      "Z0Frequency": "1e9Hz",
+      "ScanName": "Z0 scan 1Ghz"
+    }
+  },
+  "XTFD scan": {
+   "DifferentialNets": [
+    {
+     "Name": "DP_PCIE0_RX0"
+    }
+   ],
+   "Parameters": {
+    "MinTlineSegmentLength": "0.3mm",
+    "Z0Frequency": "1e9Hz",
+    "ScanName": "XT frequency Dom scan 1Ghz"
+   }
+  },
+  "XTTD scan": {
+    "SingleEndedNets": [
+      {
+        "Name": "PCIE0_RX0_.*",
+        "DriverRiseTime": "50ps",
+        "Voltage": "1V",
+        "DriverImpedance": "50.0ohm",
+        "TerminationImpedance": "50.0ohm",
+        "DriverComponent": "U2A5",
+        "ReceiverComponent": "J2L1"
+      }
+    ]
+  }
+ },
+  "S-parameters":
+  {
+    "Components": {
+    "DriverComponents": ["U2A5"],
+    "ReceiverComponents": ["J2L1"]
+  },
+  "Differential Nets": {
+      "DP_PCIE0_TX0": [
+        "PCIE0_TX0_P_EXT",
+        "PCIE0_TX0_N_EXT"
+      ],
+      "DP_PCIE0_RX0": []
+  },
+    "Freq Sweep":
+        {
+            "Linear": ["0", "1", "2"],
+            "Decade": ["1", "1e8", "10"],
+            "Linear": ["1e8", "10e9", "199"]
+        },
+    "cmpt_dcpt": "True",
+    "discret_sweep": "False",
+    "Enforce_causality": "False",
+    "Enforce_passivity": "True",
+    "sweep_name": "Sweep XY"
+  }
+  ,
+  "AEDT":
+  { "Ideal": "True",
+    "Parameters":{
+      "vlow": "0V",
+      "vhigh": "1V",
+      "trise": "50ps",
+      "tfall": "50ps",
+      "UIorBPS": "UnitInterval",
+      "UIorBPSValue": "1e-9s",
+      "BitPattern": "random_bit_count=2.5e5 random_seed=1",
+      "eye_time_start": "0fs",
+      "eye_time_stop": "200ns",
+      "offset": "0ms",
+      "manual_delay": "0ps",
+      "cross_amplitude": "0mV",
+      "eye_meas_pont": "5e-10s",
+      "trans_step": "0.1ns",
+      "trans_stop": "10ns"
+    }
+  }
+}
